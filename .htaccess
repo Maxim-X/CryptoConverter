@@ -1,0 +1,4 @@
+RewriteEngine On
+RewriteBase /
+
+RewriteRule ^list(/?)+$ index.php?option=list [L,QSA]
