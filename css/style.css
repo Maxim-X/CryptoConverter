@@ -3,22 +3,21 @@
   padding:  0px;
   box-sizing: border-box;
 }
-html {
-  min-height: 100%;
-}
+
 html {
     background: linear-gradient(354deg, #2570b1, #1b7bcf);
+    min-height: 100%;
+}
+
+body{
     font-family: sans-serif;
 }
+
 section#converter {
     width: 100%;
     max-width: 600px;
     margin: auto;
     margin-top: 100px;
-}
-
-.container {
-
 }
 
 form {
@@ -33,7 +32,7 @@ form input {
     border-radius: 5px;
     border: 1px solid #858585;
     font-weight: 400;
-    font-family: system-ui;
+    font-family: system-ui, sans-serif;
 }
 
 .response_ticker {
@@ -65,9 +64,7 @@ form input:focus {
     background: white;
     padding: 20px;
     border-radius: 5px;
-    /* -webkit-box-shadow: 0px 5px 10px 2px rgb(34 60 80 / 20%); */
-    -moz-box-shadow: 0px 5px 10px 2px rgba(34, 60, 80, 0.2);
-    /* box-shadow: 0px 5px 10px 2px rgb(34 60 80 / 20%); */
+    overflow-x: auto;
 }
 .name_page {
     text-align: center;
