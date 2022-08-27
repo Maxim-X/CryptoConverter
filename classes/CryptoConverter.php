@@ -8,47 +8,31 @@ class CryptoConverter
 	// all => [{"inpCurrency" => "BTC", "outCurrency" => "USD"}, ]
 
 	static public function search_list_ticker($allCurrency){
-		$reСonversion = false;
 		$json_file = self::read_ticker();
-		$list_update = array();
-		$list_add = array();
-
-		foreach($allCurrency as &$currency){
-			$inpCurrency = $currency["inpCurrency"];
-			$outCurrency = $currency["outCurrency"];
-
-			if (isset($json_file[$inpCurrency][$outCurrency])) {
-				$curs = $json_file[$inpCurrency][$outCurrency];
-				if (self::check_update($curs)) {
-					array_push($list_update, $currency);
-				}
-			}else if(isset($json_file[$outCurrency][$inpCurrency])){
-				if (self::check_update($curs)) {
-					$buffer = $currency["inpCurrency"];
-					$currency["inpCurrency"] = $currency["outCurrency"];
-					$currency["outCurrency"] = $buffer;
-					array_push($list_update, $currency);
-				}
+		$inpCurrency = strtoupper($allCurrency['inpCurrency']);
+		$outCurrencyList = $allCurrency['outCurrency'];
+		$outCurrencyListItemOne = $allCurrency['outCurrency'][0];
+		$outCurrencyListItemTwo = $allCurrency['outCurrency'][1];
+		$reСonversion = false;
+		
+		if (isset($json_file[$inpCurrency][$outCurrencyListItemOne]) && isset($json_file[$inpCurrency][$outCurrencyListItemTwo])) {
+			$curs_one = $json_file[$inpCurrency][$outCurrencyListItemOne];
+			$curs_two = $json_file[$inpCurrency][$outCurrencyListItemTwo];
+			
+			if (self::check_update($curs_one) || self::check_update($curs_two) ) {
+				$all_curs = self::tiker_update($inpCurrency, $outCurrencyList);
+				return $all_curs;
 			}else{
-				array_push($list_add, $currency);
+				$all_curs[$inpCurrency] = $json_file[$inpCurrency];
+				return $all_curs;
 			}
+			$curs = $json_file[$inpCurrency][$outCurrency];
 		}
+		$curs[$inpCurrency][$outCurrencyListItemOne]['price'] = self::search_ticker($inpCurrency, $outCurrencyListItemOne)["curs"];
+		$curs[$inpCurrency][$outCurrencyListItemTwo]['price'] = self::search_ticker($inpCurrency, $outCurrencyListItemTwo)["curs"];
 
-		$curs = self::all_tickers_save($list_update);
-		// self::all_tickers_save($list_add);
-		return array("status" => true, "curs" => $curs);
-		// foreach($list_update as $currency){
 
-		// }
-		// foreach($list_add as $currency){
-
-		// }
-		// echo "<pre>";
-		// echo "Добавить";
-		// var_dump($list_add);
-		// echo "Обновить";
-		// var_dump($list_update);
-		// echo "</pre>";
+		return $curs;
 	}
 
 	static public function search_ticker($inpCurrency, $outCurrency){
@@ -64,18 +48,11 @@ class CryptoConverter
 			$curs = $json_file[$outCurrency][$inpCurrency];
 			$reСonversion = true;
 		}else{
+
 			$curs = self::tiker_update($inpCurrency, $outCurrency);
+			array($outCurrency => array("update" => time(), "price" => $ticker[$outCurrency]));
 			$curs = $curs[$outCurrency]['price'];
 			return array("status" => true, "curs" => $curs);
-			// $get = self::get_ticker($inpCurrency, $outCurrency);
-			// if (isset($get['Response'])) {
-			// 	return [];
-			// }else{
-			// 	$new_ticker = array($outCurrency => array("update" => time(), "price" => $get[$outCurrency]) );
-			// 	$dd = self::ticker_save($new_ticker, $inpCurrency);
-			// 	return array("status" => true, "curs" => $get[$outCurrency]);
-			// }
-
 		}
 
 		if (self::check_update($curs)) {
@@ -99,30 +76,40 @@ class CryptoConverter
 	}
 
 	static public function tiker_update($inpCurrency, $outCurrency){
-		$time_start = microtime(true);
 		$get = self::get_ticker($inpCurrency, $outCurrency);
-		$time_end = microtime(true);
-			$time = $time_end - $time_start;
-			echo "<br>".$time;
+		
+		$return_new_ticker = array();
 		if (isset($get['Response'])) {
 			return [];
 		}else{
-			
-			$new_ticker = array($outCurrency => array("update" => time(), "price" => $get[$outCurrency]));
-			self::ticker_save($new_ticker, $inpCurrency);
+			if (is_array($outCurrency)) {
+				foreach($outCurrency as $currency){
 
+					
+					$new_ticker = array($currency => array("update" => time(), "price" => $get[$currency]));
+					self::ticker_save($new_ticker, $inpCurrency);
+					// array_push($return_new_ticker, $new_ticker);
+					$return_new_ticker[$currency] = $new_ticker[$currency];
+
+				}
+				return array($inpCurrency => $return_new_ticker);
+			}else{
+				$new_ticker = array($outCurrency => array("update" => time(), "price" => $get[$outCurrency]));
+				self::ticker_save($new_ticker, $inpCurrency);
+			}
+			
 			return $new_ticker;
 		}
 	}
 
-	static public function generate_std_class($ticker, $outCurrency){
-		$Std = new StdClass();
-		$Std->update = time();
-		$Std->price = $ticker[$outCurrency];
+	// static public function generate_std_class($ticker, $outCurrency){
+	// 	$Std = new StdClass();
+	// 	$Std->update = time();
+	// 	$Std->price = $ticker[$outCurrency];
 
-		$std_class = array($outCurrency => array("update" => time(), "price" => $ticker[$outCurrency]));
-		return $std_class;
-	}
+	// 	$std_class = array($outCurrency => array("update" => time(), "price" => $ticker[$outCurrency]));
+	// 	return $std_class;
+	// }
 
 	static public function ticker_save($ticker, $inpCurrency){
 		$file = file_get_contents(self::PATH_CACHE);  // Открыть файл data.json
@@ -168,7 +155,11 @@ class CryptoConverter
 
 
 	static public function get_ticker($inpCurrency, $outCurrency){
-		$curl = curl_init("https://cryptocalc.online/api/v1/price?fsym=".$inpCurrency."&tsyms=".$outCurrency);
+		if (is_array($outCurrency)) {
+			$curl = curl_init("https://cryptocalc.online/api/v1/price?fsym=".$inpCurrency."&tsyms=".implode(",", $outCurrency));
+		}else{
+			$curl = curl_init("https://cryptocalc.online/api/v1/price?fsym=".$inpCurrency."&tsyms=".$outCurrency);
+		}
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($curl, CURLOPT_HEADER, false);

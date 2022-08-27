@@ -26,15 +26,21 @@ $outCurrency = array("USD", "RUB");
 				    <th>Цена в RUB</th>
 			   </thead>
 			   <?php 
+			   function sum($curs){
+					$decimals = (number_format($curs) > 0) ? 2 : 8; 
+					$sum = number_format( $curs, $decimals, ',', ' ' );
+					return $sum;
+			   }
+			   // $list_ticker = CryptoConverter::search_list_ticker(array(array("inpCurrency" => "BTC","outCurrency" => array("RUB","EUR"))));
+
+
+
 			   	foreach($outCrypto as $crypto){
+			   		$list_ticker = CryptoConverter::search_list_ticker(array("inpCurrency" => $crypto, "outCurrency" => array("USD","RUB")));
 				   	echo "<tbody><td>$crypto</td>";
-				   	foreach($outCurrency as $Currency){
-				  		$sum = CryptoConverter::search_ticker($crypto, $Currency);
-				  		$sum = $sum['curs'];
-						$decimals = (number_format($sum) > 0) ? 2 : 8; 
-						$sum = number_format( $sum, $decimals, ',', ' ' );
-						echo "<td>$sum</td>";
-					}
+					echo "<td>".sum($list_ticker[$crypto]['USD']['price'])."</td>";
+					echo "<td>".sum($list_ticker[$crypto]['RUB']['price'])."</td>";
+					// echo "<td>sum($ticker['EUR'])</td>";
 				}
 				echo "</tbody>";
 			   ?>
