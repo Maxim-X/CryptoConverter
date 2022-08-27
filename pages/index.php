@@ -1,6 +1,6 @@
 <?php  
 Route::$TITLE = "Конвертер криптовалют";
-if (!isset($_POST['conver_currency'])) {
+if (empty(trim($_POST['conver_currency']))) {
 	$_POST['conver_currency'] =  "1 BTC in RUB";
 }
 

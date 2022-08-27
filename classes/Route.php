@@ -1,7 +1,6 @@
 <?php
 class Route
 {
-
 	public static $TITLE;
 	public static $DESCRIPTION;
 	

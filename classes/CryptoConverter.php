@@ -118,10 +118,11 @@ class CryptoConverter
 		$file = file_get_contents(self::PATH_CACHE); 
 		$taskList = json_decode($file,TRUE);                
 		unset($file);
+		
 		if (isset($taskList[$inpCurrency])) {
-			$add_array = array_merge($taskList[$inpCurrency], $ticker);
-		}else{
-			$add_array = $ticker;
+			$add_array = array_merge($taskList[$inpCurrency], $ticker); // Добавление курса в имеющийся json обьект
+		}else{ 
+			$add_array = $ticker; // Добавление курса в новый json обьект
 		}
 		$taskList[$inpCurrency] = $add_array; 
 		file_put_contents(self::PATH_CACHE,json_encode($taskList));
